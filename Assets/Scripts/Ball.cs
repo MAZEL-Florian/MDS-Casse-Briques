@@ -4,12 +4,11 @@ public class Ball : MonoBehaviour
 {
     public new Rigidbody2D rigidbody { get; private set; }
 
-    public float speed = 500f;
+    public float speed = 400f;
 
     private void Awake()
     {
         this.rigidbody = GetComponent<Rigidbody2D>();
-
     }
 
     private void Start()
