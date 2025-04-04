@@ -12,17 +12,20 @@ public class Paddle : MonoBehaviour
 
     public float maxBounceAngle = 75f;
     private Animator animator;
-
+    private Vector3 originalScale;
     private void Awake()
     {
         this.rigidbody = GetComponent<Rigidbody2D>();
         this.animator = GetComponent<Animator>();
+        this.originalScale = transform.localScale;
+
     }
 
     public void ResetPaddle()
     {
         this.transform.position = new Vector2(0f, this.transform.position.y);
         this.rigidbody.linearVelocity = Vector2.zero;
+        transform.localScale = originalScale;
     }
 
     private void Update()
@@ -73,5 +76,18 @@ public class Paddle : MonoBehaviour
                 this.animator.SetTrigger("Hit");
             }
         }
+    }
+    public IEnumerator ResizePaddle(float scaleFactor, float duration)
+    {
+        // Appliquer le changement de taille
+        Vector3 newScale = originalScale;
+        newScale.x *= scaleFactor;
+        transform.localScale = newScale;
+
+        // Attendre la durée du power-up
+        yield return new WaitForSeconds(duration);
+
+        // Revenir à la taille normale
+        transform.localScale = originalScale;
     }
 }

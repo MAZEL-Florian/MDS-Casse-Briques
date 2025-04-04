@@ -14,6 +14,10 @@ public class Brick : MonoBehaviour
 
     public bool unbreakable;
 
+    public GameObject powerUpPrefab;
+    [Range(0f, 1f)]
+    public float powerUpChance = 0.05f;
+
     private void Awake()
     {
         this.spriteRenderer = GetComponent<SpriteRenderer>();
@@ -46,6 +50,8 @@ public class Brick : MonoBehaviour
         if(this.health <= 0)
         {
             this.gameObject.SetActive(false);
+            SpawnPowerUp();
+
         }
         else
         {
@@ -53,7 +59,21 @@ public class Brick : MonoBehaviour
         }
         FindFirstObjectByType<GameManager>().Hit(this);
     }
+    private void SpawnPowerUp()
+    {
+        if (powerUpPrefab != null && Random.value <= powerUpChance)
+        {
+            GameObject powerUpObj = Instantiate(powerUpPrefab, transform.position, Quaternion.identity);
+            PowerUp powerUp = powerUpObj.GetComponent<PowerUp>();
 
+            if (powerUp != null)
+            {
+                // Sélection aléatoire d'un type de power-up
+                PowerUpType[] allTypes = (PowerUpType[])System.Enum.GetValues(typeof(PowerUpType));
+                powerUp.type = allTypes[Random.Range(0, allTypes.Length)];
+            }
+        }
+    }
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if(collision.gameObject.name == "Ball")

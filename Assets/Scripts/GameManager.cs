@@ -110,4 +110,9 @@ public class GameManager : MonoBehaviour
         }
         return true;
     }
+    public void AddLife()
+    {
+        lives++;
+        // Tu pourrais ajouter ici un effet visuel ou sonore
+    }
 }
