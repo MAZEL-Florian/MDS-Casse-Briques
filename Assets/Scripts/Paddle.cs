@@ -11,10 +11,12 @@ public class Paddle : MonoBehaviour
     public float speed = 30f;
 
     public float maxBounceAngle = 75f;
+    private Animator animator;
 
     private void Awake()
     {
         this.rigidbody = GetComponent<Rigidbody2D>();
+        this.animator = GetComponent<Animator>();
 
     }
 
@@ -65,6 +67,11 @@ public class Paddle : MonoBehaviour
 
             Quaternion rotation = Quaternion.AngleAxis(newAngle, Vector3.forward);
             ball.rigidbody.linearVelocity = rotation * Vector2.up * ball.rigidbody.linearVelocity.magnitude;
+            if (this.animator != null)
+            {
+                this.animator.SetTrigger("Hit");
+            }
         }
+
     }
 }
