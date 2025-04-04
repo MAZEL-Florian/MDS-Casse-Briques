@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 public class Paddle : MonoBehaviour
 {
-    public new Rigidbody2D rigidbody { get; private set;}
+    public new Rigidbody2D rigidbody { get; private set; }
 
-    public Vector2 direction { get; private set;}
+    public Vector2 direction { get; private set; }
 
     public float speed = 30f;
 
@@ -17,7 +17,6 @@ public class Paddle : MonoBehaviour
     {
         this.rigidbody = GetComponent<Rigidbody2D>();
         this.animator = GetComponent<Animator>();
-
     }
 
     public void ResetPaddle()
@@ -28,11 +27,12 @@ public class Paddle : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
             this.direction = Vector2.left;
         }
-        else if(Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) {
+        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+        {
             this.direction = Vector2.right;
         }
         else
@@ -66,12 +66,12 @@ public class Paddle : MonoBehaviour
             float newAngle = Mathf.Clamp(currentAngle + bounceAngle, -this.maxBounceAngle, this.maxBounceAngle);
 
             Quaternion rotation = Quaternion.AngleAxis(newAngle, Vector3.forward);
-            ball.rigidbody.linearVelocity = rotation * Vector2.up * ball.rigidbody.linearVelocity.magnitude;
+            ball.rigidbody.linearVelocity = rotation * Vector2.up * ball.constantSpeed;
+
             if (this.animator != null)
             {
                 this.animator.SetTrigger("Hit");
             }
         }
-
     }
 }

@@ -6,6 +6,7 @@ public class Ball : MonoBehaviour
     public bool isLaunched { get; private set; } = false;
     private Paddle paddle;
     public float speed = 400f;
+    public float constantSpeed = 10f;
 
     private void Awake()
     {
@@ -29,18 +30,15 @@ public class Ball : MonoBehaviour
     public void ResetBall()
     {
         this.transform.position = Vector2.zero;
-        //this.rigidbody.linearVelocity = Vector2.zero;
+        this.rigidbody.linearVelocity = Vector2.zero;
         this.isLaunched = false;
         this.paddle = FindObjectOfType<Paddle>();
-
-        //Invoke(nameof(SetRandomTrajectory), 1f);
     }
 
     private void Update()
     {
         if (!isLaunched && paddle != null)
         {
-            // Suivre le paddle tant que la balle n'est pas lancée
             Vector3 paddlePosition = paddle.transform.position;
             this.transform.position = new Vector3(paddlePosition.x, paddlePosition.y + 0.5f, 0f);
 
@@ -49,14 +47,20 @@ public class Ball : MonoBehaviour
                 LaunchBall();
             }
         }
+        else if (isLaunched)
+        {
+            if (this.rigidbody.linearVelocity.magnitude != 0)
+            {
+                this.rigidbody.linearVelocity = this.rigidbody.linearVelocity.normalized * constantSpeed;
+            }
+        }
     }
+
     private void LaunchBall()
     {
         isLaunched = true;
 
         Vector2 force = new Vector2(Random.Range(-1f, 1f), 1f);
-        this.rigidbody.AddForce(force.normalized * speed);
+        this.rigidbody.linearVelocity = force.normalized * constantSpeed;
     }
-
-
 }
