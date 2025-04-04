@@ -21,12 +21,18 @@ public class Brick : MonoBehaviour
 
     private void Start()
     {
+       ResetBrick();
+
+    }
+
+    public void ResetBrick()
+    {
+        this.gameObject.SetActive(true);
         if (!this.unbreakable)
         {
             this.health = this.states.Length;
             this.spriteRenderer.sprite = this.states[this.health - 1];
         }
-
     }
 
     private void Hit()
@@ -55,5 +61,6 @@ public class Brick : MonoBehaviour
             Hit();
         }
     }
+
 
 }
