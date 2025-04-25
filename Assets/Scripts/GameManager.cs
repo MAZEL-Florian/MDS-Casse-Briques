@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
 
     public Ball ball {  get; private set; }
     public Paddle paddle { get; private set; }
-
+    public PowerUp powerUp { get; private set; }
     public Brick[] bricks { get; private set; }
 
    private void Awake()
@@ -52,6 +52,7 @@ public class GameManager : MonoBehaviour
     {
         this.ball = FindObjectOfType<Ball>();
         this.paddle = FindObjectOfType<Paddle>();
+        this.powerUp = FindObjectOfType<PowerUp>();
         this.bricks = FindObjectsOfType<Brick>();
 
     }

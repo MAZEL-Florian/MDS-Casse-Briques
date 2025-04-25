@@ -43,7 +43,23 @@ public class PowerUp : MonoBehaviour
     void Update()
     {
         // Déplacement vers le bas
-        transform.Translate(Vector2.down * speed * Time.deltaTime);
+        Vector3 newPosition = transform.position + Vector3.down * speed * Time.deltaTime;
+
+        // Vérification optionnelle si on va toucher le paddle
+        RaycastHit2D hit = Physics2D.Linecast(transform.position, newPosition);
+        if (hit.collider != null)
+        {
+            Debug.Log("LineCheck détecte : " + hit.collider.gameObject.name);
+            if (hit.collider.CompareTag("Paddle"))
+            {
+                Debug.Log("LineCheck a trouvé le paddle!");
+                ApplyPowerUp();
+                Destroy(gameObject);
+                return;
+            }
+        }
+
+        transform.position = newPosition;
 
         // Destruction si sort de l'écran
         if (transform.position.y < -6f)
@@ -54,8 +70,23 @@ public class PowerUp : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
+        Debug.Log("Trigger détecté avec : " + collision.gameObject.name);
+
         if (collision.gameObject.CompareTag("Paddle"))
         {
+            Debug.Log("Collision avec le paddle détectée!");
+            // Activer l'effet du powerup
+            ApplyPowerUp();
+            Destroy(gameObject);
+        }
+    }
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log("Collision détectée avec : " + collision.gameObject.name);
+
+        if (collision.gameObject.CompareTag("Paddle"))
+        {
+            Debug.Log("Collision avec le paddle détectée!");
             // Activer l'effet du powerup
             ApplyPowerUp();
             Destroy(gameObject);
@@ -92,4 +123,5 @@ public class PowerUp : MonoBehaviour
                 break;
         }
     }
+
 }
