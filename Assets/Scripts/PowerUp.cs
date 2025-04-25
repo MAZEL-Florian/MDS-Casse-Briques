@@ -18,9 +18,8 @@ public class PowerUp : MonoBehaviour
     public PowerUpType type;
     public float speed = 5f;
     public float duration = 10f;
-    public Sprite[] powerUpSprites; // Assigne les sprites dans l'éditeur Unity
+    public Sprite[] powerUpSprites;
 
-    // Ajouter cette variable pour le son
     public AudioClip powerupSound;
 
     private SpriteRenderer spriteRenderer;
@@ -32,7 +31,6 @@ public class PowerUp : MonoBehaviour
     }
     void Start()
     {
-        // Définir le sprite en fonction du type de powerup
         if (powerUpSprites.Length > (int)type)
         {
             spriteRenderer.sprite = powerUpSprites[(int)type];
@@ -40,9 +38,7 @@ public class PowerUp : MonoBehaviour
     }
     void Update()
     {
-        // Déplacement vers le bas
         Vector3 newPosition = transform.position + Vector3.down * speed * Time.deltaTime;
-        // Vérification optionnelle si on va toucher le paddle
         RaycastHit2D hit = Physics2D.Linecast(transform.position, newPosition);
         if (hit.collider != null)
         {
@@ -57,7 +53,6 @@ public class PowerUp : MonoBehaviour
             }
         }
         transform.position = newPosition;
-        // Destruction si sort de l'écran
         if (transform.position.y < -6f)
         {
             Destroy(gameObject);
@@ -69,7 +64,6 @@ public class PowerUp : MonoBehaviour
         if (collision.gameObject.CompareTag("Paddle"))
         {
             Debug.Log("Collision avec le paddle détectée!");
-            // Activer l'effet du powerup
             ApplyPowerUp();
             PlayPowerUpSound(collision.gameObject);
             Destroy(gameObject);
@@ -81,7 +75,6 @@ public class PowerUp : MonoBehaviour
         if (collision.gameObject.CompareTag("Paddle"))
         {
             Debug.Log("Collision avec le paddle détectée!");
-            // Activer l'effet du powerup
             ApplyPowerUp();
             PlayPowerUpSound(collision.gameObject);
             Destroy(gameObject);
@@ -92,17 +85,14 @@ public class PowerUp : MonoBehaviour
     {
         if (powerupSound != null)
         {
-            // Vérifier si le paddle a un AudioSource
             AudioSource audioSource = paddle.GetComponent<AudioSource>();
 
-            // Si le paddle n'a pas d'AudioSource, on joue le son via AudioSource.PlayClipAtPoint
             if (audioSource == null)
             {
                 AudioSource.PlayClipAtPoint(powerupSound, paddle.transform.position);
             }
             else
             {
-                // Si le paddle a déjà un AudioSource, on l'utilise
                 audioSource.PlayOneShot(powerupSound);
             }
         }

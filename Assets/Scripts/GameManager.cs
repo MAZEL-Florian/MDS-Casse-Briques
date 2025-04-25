@@ -55,6 +55,16 @@ public class GameManager : MonoBehaviour
         this.powerUp = FindObjectOfType<PowerUp>();
         this.bricks = FindObjectsOfType<Brick>();
 
+        // S'assurer que l'AudioSource est présent sur tous les objets nécessaires
+        if (this.ball != null && this.ball.GetComponent<AudioSource>() == null)
+        {
+            this.ball.gameObject.AddComponent<AudioSource>();
+        }
+
+        if (this.paddle != null && this.paddle.GetComponent<AudioSource>() == null)
+        {
+            this.paddle.gameObject.AddComponent<AudioSource>();
+        }
     }
 
     private void ResetLevel()
@@ -114,6 +124,5 @@ public class GameManager : MonoBehaviour
     public void AddLife()
     {
         lives++;
-        // Tu pourrais ajouter ici un effet visuel ou sonore
     }
 }

@@ -30,27 +30,17 @@ public class Paddle : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-        {
-            this.direction = Vector2.left;
-        }
-        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-        {
-            this.direction = Vector2.right;
-        }
-        else
-        {
-            this.direction = Vector2.zero;
-        }
+        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 paddlePosition = transform.position;
+
+        // On garde la position Y du paddle, et on bouge juste sur X
+        paddlePosition.x = mousePosition.x;
+
+        transform.position = paddlePosition;
     }
 
-    private void FixedUpdate()
-    {
-        if (this.direction != Vector2.zero)
-        {
-            this.rigidbody.AddForce(this.direction * this.speed);
-        }
-    }
+
+
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -79,15 +69,12 @@ public class Paddle : MonoBehaviour
     }
     public IEnumerator ResizePaddle(float scaleFactor, float duration)
     {
-        // Appliquer le changement de taille
         Vector3 newScale = originalScale;
         newScale.x *= scaleFactor;
         transform.localScale = newScale;
 
-        // Attendre la durée du power-up
         yield return new WaitForSeconds(duration);
 
-        // Revenir à la taille normale
         transform.localScale = originalScale;
     }
 }

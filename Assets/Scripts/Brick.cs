@@ -68,7 +68,6 @@ public class Brick : MonoBehaviour
 
             if (powerUp != null)
             {
-                // Sélection aléatoire d'un type de power-up
                 PowerUpType[] allTypes = (PowerUpType[])System.Enum.GetValues(typeof(PowerUpType));
                 powerUp.type = allTypes[Random.Range(0, allTypes.Length)];
             }
