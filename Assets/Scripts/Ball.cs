@@ -5,6 +5,9 @@ public class Ball : MonoBehaviour
 {
     public new Rigidbody2D rigidbody { get; private set; }
     public bool isLaunched { get; private set; } = false;
+    public AudioClip bounceSound;
+    private AudioSource audioSource;
+
     private Paddle paddle;
     public float speed = 400f;
     public float constantSpeed = 10f;
@@ -17,6 +20,7 @@ public class Ball : MonoBehaviour
 
     private void Awake()
     {
+        this.audioSource = GetComponent<AudioSource>();
         this.rigidbody = GetComponent<Rigidbody2D>();
         this.ballCollider = GetComponent<CircleCollider2D>();
         this.originalScale = transform.localScale;
@@ -136,7 +140,6 @@ public class Ball : MonoBehaviour
             Brick brick = collision.gameObject.GetComponent<Brick>();
             if (brick != null)
             {
-                // Accéder à la méthode Hit via réflexion car elle est privée
                 System.Reflection.MethodInfo hitMethod = brick.GetType().GetMethod("Hit",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (hitMethod != null)
@@ -145,5 +148,12 @@ public class Ball : MonoBehaviour
                 }
             }
         }
+
+        // Si la balle touche le paddle, joue le son
+        if (collision.gameObject.CompareTag("Paddle") && bounceSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(bounceSound);
+        }
     }
+
 }
