@@ -9,14 +9,23 @@ public class GameManager : MonoBehaviour
     public int score = 0;
     public int lives = 3;
 
-    public TMP_Text livesText;
-    public GameObject levelCompletePanel;
-    public TMP_Text levelCompleteText;
-    public AudioClip levelCompleteSound;
-    private AudioSource audioSource;
-    public GameObject gameOverPanel;
-    private bool isLevelCompleted = false;
+    public float levelTimer = 0f;
+    public float totalTimer = 0f;
+    public float[] levelTimes;
 
+    public TMP_Text livesText;
+    public TMP_Text timerText;
+    public TMP_Text levelCompleteText;
+    public TMP_Text winText;
+
+    public GameObject levelCompletePanel;
+    public GameObject gameOverPanel;
+    public GameObject winPanel;
+
+    private AudioSource audioSource;
+    private bool isLevelCompleted = false;
+    public AudioClip levelCompleteSound;
+    public AudioClip gameOverSound;
     public Ball ball { get; private set; }
     public Paddle paddle { get; private set; }
     public PowerUp powerUp { get; private set; }
@@ -27,25 +36,27 @@ public class GameManager : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         SceneManager.sceneLoaded += OnLevelLoaded;
 
-        // Désactive les panels dès le départ
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (levelCompletePanel != null) levelCompletePanel.SetActive(false);
+        if (winPanel != null) winPanel.SetActive(false);
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.P))
+        if (SceneManager.GetSceneByName("MainMenu").isLoaded)
         {
-            Debug.Log("Forcing GameOverPanel ON");
-            if (gameOverPanel != null)
-                gameOverPanel.SetActive(true);
+            return;
         }
 
-        if (Input.GetKeyDown(KeyCode.L))
+        if (!isLevelCompleted)
         {
-            Debug.Log("Forcing LevelCompletePanel ON");
-            if (levelCompletePanel != null)
-                levelCompletePanel.SetActive(true);
+            levelTimer += Time.deltaTime;
+            totalTimer += Time.deltaTime;
+
+            if (timerText != null)
+            {
+                timerText.text = $"Temps : {levelTimer:F1}s";
+            }
         }
     }
 
@@ -58,12 +69,15 @@ public class GameManager : MonoBehaviour
         lives = 3;
         isLevelCompleted = false;
 
-        // Réinitialise les UI
+        totalTimer = 0f;
+        levelTimer = 0f;
+        levelTimes = new float[1];
+
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (levelCompletePanel != null) levelCompletePanel.SetActive(false);
+        if (winPanel != null) winPanel.SetActive(false);
         UpdateLivesText();
 
-        // IMPORTANT : décharge explicitement toutes les scènes sauf GlobalScene
         for (int i = 0; i < SceneManager.sceneCount; i++)
         {
             var loadedScene = SceneManager.GetSceneAt(i);
@@ -73,7 +87,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Recharge le premier niveau proprement
         SceneManager.LoadScene("Level1", LoadSceneMode.Additive);
     }
 
@@ -92,7 +105,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (level > 10)
+        if (level > 1)
         {
             SceneManager.LoadScene("WinScreen", LoadSceneMode.Additive);
         }
@@ -110,6 +123,8 @@ public class GameManager : MonoBehaviour
         bricks = FindObjectsOfType<Brick>();
         isLevelCompleted = false;
 
+        levelTimer = 0f;
+
         if (paddle != null) paddle.enabled = true;
         if (ball != null && ball.GetComponent<AudioSource>() == null)
         {
@@ -119,11 +134,6 @@ public class GameManager : MonoBehaviour
         {
             paddle.gameObject.AddComponent<AudioSource>();
         }
-
-        UpdateUIReferences();
-
-        if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        if (levelCompletePanel != null) levelCompletePanel.SetActive(false);
 
         UpdateLivesText();
     }
@@ -139,24 +149,20 @@ public class GameManager : MonoBehaviour
         if (paddle != null) paddle.ResetPaddle();
     }
 
+
     public void ReturnToMenu()
     {
         Debug.Log("Returning to menu, resetting full game state.");
 
-        // Désinscrit les callbacks
         SceneManager.sceneLoaded -= OnLevelLoaded;
 
-        // Décharge toutes les scènes (y compris GlobalScene)
         for (int i = 0; i < SceneManager.sceneCount; i++)
         {
             var loadedScene = SceneManager.GetSceneAt(i);
             SceneManager.UnloadSceneAsync(loadedScene);
         }
 
-        // Recharge GlobalScene en Single → il recrée un GameManager neuf
         SceneManager.LoadScene("GlobalScene", LoadSceneMode.Single);
-
-        // Ajoute MainMenu par-dessus
         SceneManager.LoadScene("MainMenu", LoadSceneMode.Additive);
     }
 
@@ -168,15 +174,15 @@ public class GameManager : MonoBehaviour
         Debug.Log("GameOver triggered!");
         if (ball != null) ball.StopBall();
         if (paddle != null) paddle.enabled = false;
+        if (audioSource != null && gameOverSound != null)
+        {
+            audioSource.PlayOneShot(gameOverSound);
+        }
 
         if (gameOverPanel != null)
         {
             Debug.Log("Activating GameOverPanel");
             gameOverPanel.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("GameOverPanel is NULL!");
         }
     }
 
@@ -225,6 +231,12 @@ public class GameManager : MonoBehaviour
 
         isLevelCompleted = true;
 
+        // ✅ Check pour éviter dépassement de tableau
+        if (level - 1 < levelTimes.Length)
+        {
+            levelTimes[level - 1] = levelTimer; // store time for this level
+        }
+
         if (ball != null) ball.StopBall();
         if (paddle != null) paddle.enabled = false;
 
@@ -233,15 +245,36 @@ public class GameManager : MonoBehaviour
             audioSource.PlayOneShot(levelCompleteSound);
         }
 
-        if (levelCompletePanel != null && levelCompleteText != null)
+        if (level >= 1)
         {
-            Debug.Log("Activating LevelCompletePanel");
-            levelCompletePanel.SetActive(true);
-            levelCompleteText.text = $"Niveau {level} terminé !";
+            ShowWinScreen();
         }
         else
         {
-            Debug.LogWarning("LevelCompletePanel or LevelCompleteText is NULL!");
+            if (levelCompletePanel != null && levelCompleteText != null)
+            {
+                levelCompletePanel.SetActive(true);
+                levelCompleteText.text = $"Niveau {level} terminé !\nTemps : {levelTimer:F1}s";
+            }
+        }
+    }
+
+
+    private void ShowWinScreen()
+    {
+        if (winPanel != null && winText != null)
+        {
+            winPanel.SetActive(true);
+
+            string summary = $"Bravo ! Tu as terminé le jeu.\n\n";
+            summary += $"Temps total : {totalTimer:F1}s\n\n";
+
+            for (int i = 0; i < levelTimes.Length; i++)
+            {
+                summary += $"Niveau {i + 1} : {levelTimes[i]:F1}s\n";
+            }
+
+            winText.text = summary;
         }
     }
 
@@ -257,6 +290,7 @@ public class GameManager : MonoBehaviour
         lives++;
         UpdateLivesText();
     }
+
 
     private void UpdateLivesText()
     {
