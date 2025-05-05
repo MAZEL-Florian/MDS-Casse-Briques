@@ -58,16 +58,25 @@ public class GameManager : MonoBehaviour
         lives = 3;
         isLevelCompleted = false;
 
-        bricks = new Brick[0]; // force remise à zéro des références
-        ball = null;
-        paddle = null;
-
+        // Réinitialise les UI
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (levelCompletePanel != null) levelCompletePanel.SetActive(false);
-
-        UpdateUIReferences();
         UpdateLivesText();
+
+        // IMPORTANT : décharge explicitement toutes les scènes sauf GlobalScene
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            var loadedScene = SceneManager.GetSceneAt(i);
+            if (loadedScene.name != "GlobalScene")
+            {
+                SceneManager.UnloadSceneAsync(loadedScene);
+            }
+        }
+
+        // Recharge le premier niveau proprement
+        SceneManager.LoadScene("Level1", LoadSceneMode.Additive);
     }
+
 
 
     private void LoadLevel(int level)
@@ -132,38 +141,25 @@ public class GameManager : MonoBehaviour
 
     public void ReturnToMenu()
     {
-        Debug.Log("Returning to menu, resetting game state.");
-
-        // Reset état interne
-        level = 1;
-        score = 0;
-        lives = 3;
-        isLevelCompleted = false;
-        bricks = new Brick[0];
-        ball = null;
-        paddle = null;
-
-        // Réinitialise les panneaux UI
-        if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        if (levelCompletePanel != null) levelCompletePanel.SetActive(false);
-        UpdateLivesText();
+        Debug.Log("Returning to menu, resetting full game state.");
 
         // Désinscrit les callbacks
         SceneManager.sceneLoaded -= OnLevelLoaded;
 
-        // Unload toutes les scènes sauf GlobalScene
+        // Décharge toutes les scènes (y compris GlobalScene)
         for (int i = 0; i < SceneManager.sceneCount; i++)
         {
             var loadedScene = SceneManager.GetSceneAt(i);
-            if (loadedScene.name != "GlobalScene")
-            {
-                SceneManager.UnloadSceneAsync(loadedScene);
-            }
+            SceneManager.UnloadSceneAsync(loadedScene);
         }
 
-        // Charger le menu additivement (au-dessus de GlobalScene)
+        // Recharge GlobalScene en Single → il recrée un GameManager neuf
+        SceneManager.LoadScene("GlobalScene", LoadSceneMode.Single);
+
+        // Ajoute MainMenu par-dessus
         SceneManager.LoadScene("MainMenu", LoadSceneMode.Additive);
     }
+
 
 
 
