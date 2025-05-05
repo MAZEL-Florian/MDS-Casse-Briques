@@ -158,6 +158,11 @@ public class Ball : MonoBehaviour
             audioSource.PlayOneShot(clip);
         }
     }
+    public void StopBall()
+    {
+        this.rigidbody.linearVelocity = Vector2.zero;
+        isLaunched = false;
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {

@@ -16,7 +16,7 @@ public class Brick : MonoBehaviour
 
     public GameObject powerUpPrefab;
     [Range(0f, 1f)]
-    public float powerUpChance = 0.05f;
+    public float powerUpChance = 0.1f;
 
     [Header("Sound")]
     public AudioClip hitSound;  // assigné dans l’inspector
