@@ -31,13 +31,14 @@ public class Paddle : MonoBehaviour
     private void Update()
     {
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector3 paddlePosition = transform.position;
+        Vector3 targetPosition = new Vector3(mousePosition.x, transform.position.y, 0f);
 
-        // On garde la position Y du paddle, et on bouge juste sur X
-        paddlePosition.x = mousePosition.x;
+        // On garde la position actuelle, mais on prépare le déplacement via Rigidbody2D
+        Vector2 newPosition = new Vector2(targetPosition.x, targetPosition.y);
 
-        transform.position = paddlePosition;
+        rigidbody.MovePosition(newPosition);
     }
+
 
 
 

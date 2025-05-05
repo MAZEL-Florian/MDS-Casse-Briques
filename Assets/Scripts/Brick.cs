@@ -8,7 +8,7 @@ public class Brick : MonoBehaviour
 
     public Sprite[] states;
 
-    public int health {  get; private set; }
+    public int health { get; private set; }
 
     public int points = 100;
 
@@ -18,6 +18,9 @@ public class Brick : MonoBehaviour
     [Range(0f, 1f)]
     public float powerUpChance = 0.05f;
 
+    [Header("Sound")]
+    public AudioClip hitSound;  // assigné dans l’inspector
+
     private void Awake()
     {
         this.spriteRenderer = GetComponent<SpriteRenderer>();
@@ -25,8 +28,7 @@ public class Brick : MonoBehaviour
 
     private void Start()
     {
-       ResetBrick();
-
+        ResetBrick();
     }
 
     public void ResetBrick()
@@ -38,27 +40,34 @@ public class Brick : MonoBehaviour
             this.spriteRenderer.sprite = this.states[this.health - 1];
         }
     }
-
-    private void Hit()
+    private void Hit(Ball ball)
     {
-        if(this.unbreakable)
+        if (hitSound != null && ball != null)
+        {
+            ball.PlayHitSound(hitSound);
+        }
+
+        if (this.unbreakable)
         {
             return;
         }
+
         this.health--;
 
-        if(this.health <= 0)
+        if (this.health <= 0)
         {
             this.gameObject.SetActive(false);
             SpawnPowerUp();
-
         }
         else
         {
             this.spriteRenderer.sprite = this.states[this.health - 1];
         }
+
         FindFirstObjectByType<GameManager>().Hit(this);
     }
+
+
     private void SpawnPowerUp()
     {
         if (powerUpPrefab != null && Random.value <= powerUpChance)
@@ -73,13 +82,14 @@ public class Brick : MonoBehaviour
             }
         }
     }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.name == "Ball")
+        Ball ball = collision.gameObject.GetComponent<Ball>();
+        if (ball != null)
         {
-            Hit();
+            Hit(ball);
         }
     }
-
 
 }

@@ -116,6 +116,13 @@ public class Ball : MonoBehaviour
 
         constantSpeed = originalConstantSpeed;
     }
+    public void PlayHitSound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -128,7 +135,7 @@ public class Ball : MonoBehaviour
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (hitMethod != null)
                 {
-                    hitMethod.Invoke(brick, null);
+                    hitMethod.Invoke(brick, new object[] { this });
                 }
             }
         }
@@ -137,6 +144,7 @@ public class Ball : MonoBehaviour
         {
             audioSource.PlayOneShot(bounceSound);
         }
+
     }
 
 }
