@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,16 +14,28 @@ public class GameManager : MonoBehaviour
     public Paddle paddle { get; private set; }
     public PowerUp powerUp { get; private set; }
     public Brick[] bricks { get; private set; }
-
-   private void Awake()
+    public Text livesText;
+    private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
 
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas != null)
+        {
+            DontDestroyOnLoad(canvas.gameObject);
+        }
+
         SceneManager.sceneLoaded += OnLevelLoaded;
     }
+
     private void Start()
     {
-        NewGame();
+        if (livesText == null)
+        {
+            livesText = GameObject.Find("LivesText").GetComponent<Text>();
+        }
+
+        UpdateLivesText();
     }
     private void NewGame()
     {
@@ -43,7 +56,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene("Level" + level);
+            SceneManager.LoadScene("Level" + level, LoadSceneMode.Single);
 
         }
     }
@@ -90,15 +103,17 @@ public class GameManager : MonoBehaviour
     {
         this.lives--;
 
-        if(this.lives < 0 )
-        {
-            ResetLevel();
-        }
-        else
+        if (this.lives < 0)
         {
             GameOver();
         }
+        else
+        {
+            ResetLevel();
+        }
+        UpdateLivesText();
     }
+
 
     public void Hit(Brick brick)
     {
@@ -124,5 +139,14 @@ public class GameManager : MonoBehaviour
     public void AddLife()
     {
         lives++;
+        UpdateLivesText();
     }
+    private void UpdateLivesText()
+    {
+        if (livesText != null)
+        {
+            livesText.text = "Vies : " + lives.ToString();
+        }
+    }
+
 }

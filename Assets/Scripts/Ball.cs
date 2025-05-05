@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 public class Ball : MonoBehaviour
@@ -17,8 +17,16 @@ public class Ball : MonoBehaviour
     private float originalConstantSpeed;
     private CircleCollider2D ballCollider;
 
+    private Color originalColor;
+    public Color passThroughColor = Color.red;
+    private SpriteRenderer spriteRenderer;
+
+    private Coroutine passThroughCoroutine;
+
     private void Awake()
     {
+        this.spriteRenderer = GetComponent<SpriteRenderer>();
+        this.originalColor = spriteRenderer.color;
         this.audioSource = GetComponent<AudioSource>();
         this.rigidbody = GetComponent<Rigidbody2D>();
         this.ballCollider = GetComponent<CircleCollider2D>();
@@ -33,9 +41,7 @@ public class Ball : MonoBehaviour
 
     private void SetRandomTrajectory()
     {
-        Vector2 force = Vector2.zero;
-        force.x = Random.Range(-1f, 1f);
-        force.y = -1f;
+        Vector2 force = new Vector2(Random.Range(-1f, 1f), -1f);
         this.rigidbody.AddForce(force.normalized * this.speed);
     }
 
@@ -48,7 +54,15 @@ public class Ball : MonoBehaviour
 
         transform.localScale = originalScale;
         constantSpeed = originalConstantSpeed;
-        SetPassThrough(false, 0);
+
+        // Stop any ongoing pass-through effect
+        if (passThroughCoroutine != null)
+        {
+            StopCoroutine(passThroughCoroutine);
+            passThroughCoroutine = null;
+        }
+        passThrough = false;
+        spriteRenderer.color = originalColor;
     }
 
     private void Update()
@@ -92,20 +106,40 @@ public class Ball : MonoBehaviour
 
     public IEnumerator SetPassThrough(bool enabled, float duration)
     {
-        passThrough = enabled;
-
         if (enabled)
         {
-            Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Bricks"), true);
+            // Stop any existing coroutine before starting a new one
+            if (passThroughCoroutine != null)
+            {
+                StopCoroutine(passThroughCoroutine);
+            }
+            passThroughCoroutine = StartCoroutine(PassThroughRoutine(duration));
         }
-
-        if (duration > 0)
+        else
         {
-            yield return new WaitForSeconds(duration);
-
-            Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Bricks"), false);
+            // Cancel effect immediately
+            if (passThroughCoroutine != null)
+            {
+                StopCoroutine(passThroughCoroutine);
+                passThroughCoroutine = null;
+            }
             passThrough = false;
+            spriteRenderer.color = originalColor;
         }
+
+        yield break;
+    }
+
+    private IEnumerator PassThroughRoutine(float duration)
+    {
+        passThrough = true;
+        spriteRenderer.color = passThroughColor;
+
+        yield return new WaitForSeconds(duration);
+
+        passThrough = false;
+        spriteRenderer.color = originalColor;
+        passThroughCoroutine = null;
     }
 
     public IEnumerator ModifySpeed(float speedFactor, float duration)
@@ -116,6 +150,7 @@ public class Ball : MonoBehaviour
 
         constantSpeed = originalConstantSpeed;
     }
+
     public void PlayHitSound(AudioClip clip)
     {
         if (clip != null && audioSource != null)
@@ -126,25 +161,29 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (passThrough && collision.gameObject.CompareTag("Brick"))
+        if (collision.gameObject.CompareTag("Brick"))
         {
             Brick brick = collision.gameObject.GetComponent<Brick>();
             if (brick != null)
             {
-                System.Reflection.MethodInfo hitMethod = brick.GetType().GetMethod("Hit",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (hitMethod != null)
+                if (passThrough)
                 {
-                    hitMethod.Invoke(brick, new object[] { this });
+                    while (brick.health > 0)
+                    {
+                        brick.SendMessage("Hit", this, SendMessageOptions.DontRequireReceiver);
+                    }
+
+                    rigidbody.linearVelocity = rigidbody.linearVelocity.normalized * constantSpeed;
+                }
+                else
+                {
+                    brick.SendMessage("Hit", this, SendMessageOptions.DontRequireReceiver);
                 }
             }
         }
-
-        if (collision.gameObject.CompareTag("Paddle") && bounceSound != null && audioSource != null)
+        else if (collision.gameObject.CompareTag("Paddle") && bounceSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(bounceSound);
         }
-
     }
-
 }
