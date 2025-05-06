@@ -49,6 +49,9 @@ public class Paddle : MonoBehaviour
 
         if (ball != null)
         {
+            // RESET COMBO
+            FindObjectOfType<GameManager>().comboCount = 0;
+
             Vector3 paddlePosition = this.transform.position;
             Vector2 contactPoint = collision.GetContact(0).point;
 
@@ -68,6 +71,7 @@ public class Paddle : MonoBehaviour
             }
         }
     }
+
     public IEnumerator ResizePaddle(float scaleFactor, float duration)
     {
         Vector3 newScale = originalScale;

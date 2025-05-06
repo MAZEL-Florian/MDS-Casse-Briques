@@ -12,11 +12,14 @@ public class GameManager : MonoBehaviour
     public float levelTimer = 0f;
     public float totalTimer = 0f;
     public float[] levelTimes;
+    public int[] levelScores;
+    public int comboCount = 0;
 
     public TMP_Text livesText;
     public TMP_Text timerText;
     public TMP_Text levelCompleteText;
     public TMP_Text winText;
+    public TMP_Text scoreText;
 
     public GameObject levelCompletePanel;
     public GameObject gameOverPanel;
@@ -71,11 +74,12 @@ public class GameManager : MonoBehaviour
 
         totalTimer = 0f;
         levelTimer = 0f;
-        levelTimes = new float[1];
+        levelTimes = new float[10];  // prévoir jusqu’à 10 niveaux
+        levelScores = new int[10];
 
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        if (levelCompletePanel != null) levelCompletePanel.SetActive(false);
-        if (winPanel != null) winPanel.SetActive(false);
+        if (levelCompletePanel != null) gameOverPanel.SetActive(false);
+        if (winPanel != null) gameOverPanel.SetActive(false);
         UpdateLivesText();
 
         for (int i = 0; i < SceneManager.sceneCount; i++)
@@ -90,7 +94,13 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("Level1", LoadSceneMode.Additive);
     }
 
-
+    private void UpdateScoreText()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = $"Score : {score}";
+        }
+    }
 
     private void LoadLevel(int level)
     {
@@ -149,7 +159,6 @@ public class GameManager : MonoBehaviour
         if (paddle != null) paddle.ResetPaddle();
     }
 
-
     public void ReturnToMenu()
     {
         Debug.Log("Returning to menu, resetting full game state.");
@@ -165,9 +174,6 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("GlobalScene", LoadSceneMode.Single);
         SceneManager.LoadScene("MainMenu", LoadSceneMode.Additive);
     }
-
-
-
 
     private void GameOver()
     {
@@ -204,7 +210,16 @@ public class GameManager : MonoBehaviour
 
     public void Hit(Brick brick)
     {
-        score += brick.points;
+        comboCount++; // on compte dès la première brique
+
+        int multiplier = Mathf.Min(comboCount, 4);
+        int brickPoints = brick.points * multiplier;
+
+        score += brickPoints;
+
+        UpdateScoreText();
+
+        Debug.Log($"Brick hit! Combo: {comboCount}, Multiplier: x{multiplier}, Points earned: {brickPoints}, Total Score: {score}");
 
         if (Cleared())
         {
@@ -223,7 +238,6 @@ public class GameManager : MonoBehaviour
         }
         return true;
     }
-
     private void ShowLevelComplete()
     {
         Debug.Log("Level complete triggered!");
@@ -231,10 +245,11 @@ public class GameManager : MonoBehaviour
 
         isLevelCompleted = true;
 
-        // ✅ Check pour éviter dépassement de tableau
+        // ✅ Stocker temps et score
         if (level - 1 < levelTimes.Length)
         {
-            levelTimes[level - 1] = levelTimer; // store time for this level
+            levelTimes[level - 1] = levelTimer;
+            levelScores[level - 1] = score;
         }
 
         if (ball != null) ball.StopBall();
@@ -245,7 +260,10 @@ public class GameManager : MonoBehaviour
             audioSource.PlayOneShot(levelCompleteSound);
         }
 
-        if (level >= 1)
+        // Vérifie si c’est le dernier niveau
+        bool isLastLevel = (level >= levelTimes.Length);
+
+        if (isLastLevel)
         {
             ShowWinScreen();
         }
@@ -253,8 +271,15 @@ public class GameManager : MonoBehaviour
         {
             if (levelCompletePanel != null && levelCompleteText != null)
             {
+                int previousLevelScore = levelScores[level - 1];
+                int totalScore = score;
+
                 levelCompletePanel.SetActive(true);
-                levelCompleteText.text = $"Niveau {level} terminé !\nTemps : {levelTimer:F1}s";
+                levelCompleteText.text =
+                    $"Niveau {level} terminé !\n" +
+                    $"Temps : {levelTimer:F1}s\n" +
+                    $"Score du niveau : {previousLevelScore}\n" +
+                    $"Score total : {totalScore}";
             }
         }
     }
@@ -267,16 +292,20 @@ public class GameManager : MonoBehaviour
             winPanel.SetActive(true);
 
             string summary = $"Bravo ! Tu as terminé le jeu.\n\n";
-            summary += $"Temps total : {totalTimer:F1}s\n\n";
+            summary += $"Temps total : {totalTimer:F1}s\n";
+            summary += $"Score total : {score}\n\n";
 
-            for (int i = 0; i < levelTimes.Length; i++)
+            int maxLevels = Mathf.Min(level, levelTimes.Length);
+
+            for (int i = 0; i < maxLevels; i++)
             {
-                summary += $"Niveau {i + 1} : {levelTimes[i]:F1}s\n";
+                summary += $"Niveau {i + 1} : {levelTimes[i]:F1}s, Score : {levelScores[i]}\n";
             }
 
             winText.text = summary;
         }
     }
+
 
     public void LoadNextLevel()
     {
@@ -290,7 +319,6 @@ public class GameManager : MonoBehaviour
         lives++;
         UpdateLivesText();
     }
-
 
     private void UpdateLivesText()
     {
