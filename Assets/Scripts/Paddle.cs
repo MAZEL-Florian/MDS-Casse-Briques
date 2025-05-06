@@ -33,7 +33,13 @@ public class Paddle : MonoBehaviour
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3 targetPosition = new Vector3(mousePosition.x, transform.position.y, 0f);
 
-        // On garde la position actuelle, mais on prépare le déplacement via Rigidbody2D
+        float paddleHalfWidth = GetComponent<SpriteRenderer>().bounds.extents.x;
+
+        float leftLimit = Camera.main.ScreenToWorldPoint(Vector3.zero).x + paddleHalfWidth;
+        float rightLimit = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0f, 0f)).x - paddleHalfWidth;
+
+        targetPosition.x = Mathf.Clamp(targetPosition.x, leftLimit, rightLimit);
+
         Vector2 newPosition = new Vector2(targetPosition.x, targetPosition.y);
 
         rigidbody.MovePosition(newPosition);
@@ -49,7 +55,6 @@ public class Paddle : MonoBehaviour
 
         if (ball != null)
         {
-            // RESET COMBO
             FindObjectOfType<GameManager>().comboCount = 0;
 
             Vector3 paddlePosition = this.transform.position;

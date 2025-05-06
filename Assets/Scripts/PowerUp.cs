@@ -55,7 +55,6 @@ public class PowerUp : MonoBehaviour
 
         transform.position = newPosition;
 
-        // Détruit si tombe sous l’écran
         if (transform.position.y < -6f)
         {
             Destroy(gameObject);

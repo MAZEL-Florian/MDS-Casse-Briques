@@ -19,7 +19,7 @@ public class Brick : MonoBehaviour
     public float powerUpChance = 0.1f;
 
     [Header("Sound")]
-    public AudioClip hitSound;  // assigné dans l’inspector
+    public AudioClip hitSound;
 
     private void Awake()
     {

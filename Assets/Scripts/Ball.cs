@@ -55,7 +55,6 @@ public class Ball : MonoBehaviour
         transform.localScale = originalScale;
         constantSpeed = originalConstantSpeed;
 
-        // Stop any ongoing pass-through effect
         if (passThroughCoroutine != null)
         {
             StopCoroutine(passThroughCoroutine);
@@ -80,7 +79,20 @@ public class Ball : MonoBehaviour
         {
             if (this.rigidbody.linearVelocity.magnitude != 0)
             {
-                this.rigidbody.linearVelocity = this.rigidbody.linearVelocity.normalized * constantSpeed;
+                Vector2 velocity = this.rigidbody.linearVelocity.normalized;
+
+                if (Mathf.Abs(velocity.x) < 0.1f)
+                {
+                    velocity.x = 0.1f * Mathf.Sign(velocity.x == 0 ? Random.Range(-1f, 1f) : velocity.x);
+                    velocity = velocity.normalized;
+                }
+                if (Mathf.Abs(velocity.y) < 0.1f)
+                {
+                    velocity.y = 0.1f * Mathf.Sign(velocity.y == 0 ? Random.Range(-1f, 1f) : velocity.y);
+                    velocity = velocity.normalized;
+                }
+
+                this.rigidbody.linearVelocity = velocity * constantSpeed;
             }
         }
     }
@@ -108,7 +120,6 @@ public class Ball : MonoBehaviour
     {
         if (enabled)
         {
-            // Stop any existing coroutine before starting a new one
             if (passThroughCoroutine != null)
             {
                 StopCoroutine(passThroughCoroutine);
@@ -117,7 +128,6 @@ public class Ball : MonoBehaviour
         }
         else
         {
-            // Cancel effect immediately
             if (passThroughCoroutine != null)
             {
                 StopCoroutine(passThroughCoroutine);
@@ -158,6 +168,7 @@ public class Ball : MonoBehaviour
             audioSource.PlayOneShot(clip);
         }
     }
+
     public void StopBall()
     {
         this.rigidbody.linearVelocity = Vector2.zero;
